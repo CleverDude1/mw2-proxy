@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       },
 
       // ✅ include both page + limit
-      body: 'page=1&limit=30000'
+      body: 'page=1&limit=20000'
     });
 
     const text = await response.text();

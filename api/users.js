@@ -40,7 +40,7 @@ export default async function handler(req, res) {
       // ❌ Remove bad entries
       if (!nickname || nickname.trim() === '') return false;
       if (nickname.toLowerCase() === 'unknown') return false;
-      if (xp <= 0) return false;
+      if (xp <= 10000) return false;
 
       return true;
     });

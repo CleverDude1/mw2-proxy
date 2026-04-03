@@ -10,19 +10,31 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Send POST request without limit
-    const response = await fetch('https://martiangames.com/api/users', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': 'Bearer a6cc01d0-205e-45cc-8550-d06c9c721e66'
-      },
-      body: 'page=1' // removed limit
-    });
+    const allUsers = [];
+    let page = 1;
+    let hasMore = true;
 
-    const data = await response.text();
+    while (hasMore) {
+      const response = await fetch('https://martiangames.com/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer a6cc01d0-205e-45cc-8550-d06c9c721e66'
+        },
+        body: `page=${page}&limit=1000` // using 1000 per page for faster fetch
+      });
 
-    res.status(200).send(data);
+      const data = await response.json();
+
+      if (!data || data.length === 0) {
+        hasMore = false; // no more users
+      } else {
+        allUsers.push(...data);
+        page++; // next page
+      }
+    }
+
+    res.status(200).json(allUsers);
 
   } catch (error) {
     console.error(error);

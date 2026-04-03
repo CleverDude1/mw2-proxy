@@ -12,25 +12,44 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-
-        // ✅ REQUIRED (these were missing)
         'Origin': 'https://martiangames.com',
         'Referer': 'https://martiangames.com/portal/game/leaderboard',
-
-        // ⚠️ IMPORTANT: use the NEW token you just captured
         'Authorization': 'Bearer d58566b4-d72c-44ef-a931-d9fa9c899106'
       },
-
-      // ✅ include both page + limit
-      body: 'page=1&limit=20000'
+      body: 'page=1&limit=10000'
     });
 
     const text = await response.text();
 
-    // Optional debug (VERY useful)
-    console.log('Response:', text.slice(0, 200));
+    // 🔥 Parse safely
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      console.error('Invalid JSON:', text.slice(0, 200));
+      return res.status(500).json({ error: 'Invalid API response' });
+    }
 
-    res.status(200).send(text);
+    // 🔥 FILTER OUT BAD ACCOUNTS (no level filter now)
+    const filtered = data.filter(user => {
+      const u = user.current || {};
+
+      const nickname = u.nickname;
+      const xp = Number(u.xp) || 0;
+
+      // ❌ Remove bad entries
+      if (!nickname || nickname.trim() === '') return false;
+      if (nickname.toLowerCase() === 'unknown') return false;
+      if (xp <= 0) return false;
+
+      return true;
+    });
+
+    // Optional debug
+    console.log(`Original: ${data.length}, Filtered: ${filtered.length}`);
+
+    // ✅ Return CLEAN data
+    res.status(200).json(filtered);
 
   } catch (error) {
     console.error(error);
